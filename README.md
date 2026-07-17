@@ -12,8 +12,8 @@ The downloaded ZIP file contains `Asset List Generator.exe`. You can extract it 
 
 Running the executable should display the following interface.
 
-* **Blender Executable**: The location of your `blender.exe`.
-* **Asset Library Folder**: The root folder of your asset library. It may contain `.blend` files directly, or it may contain subfolders that contain asset libraries.
+* **Blender Executable**: The location of your `blender.exe`. The path must include blender.exe. at the end.
+* **Asset Library Folder**: The root "folder" of your asset library. Within the folder, it may contain `.blend` files directly, or it may contain subfolders that contain asset libraries.
 
 <img width="757" height="255" alt="image" src="https://github.com/user-attachments/assets/1ab4eb0a-99d2-49a8-8b69-f2f62d8ca3a0" />
 
