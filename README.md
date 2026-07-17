@@ -3,4 +3,4 @@ Asset List Generator is a lightweight utility that provides a convenient interfa
 
 Otherwise, setting up the remote asset library seems complex and confusing for those who doesn't know commands well enough: https://docs.blender.org/manual/en/dev/files/asset_libraries/remote_asset_libraries.html#creating-a-remote-asset-library
 
-given my system and knowledge, currently it only supports windows.
+The generator is vibe coded by GPT. It's tested to be working on windows, but feel free for professional developers to contribute to make it more professional.
