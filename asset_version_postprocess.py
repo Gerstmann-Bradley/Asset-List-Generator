@@ -64,18 +64,30 @@ def _version_str(v: BlenderVersion) -> str:
     return f"{v[0]}.{v[1]}"
 
 
-def _dir_version(relpath: Path) -> BlenderVersion | None:
-    """Version from the immediate parent folder, e.g. '5.3/chair.blend' -> (5, 3)."""
-    m = _DIRNAME_RE.fullmatch(relpath.parent.name)
-    if not m:
-        return None
-    return (int(m.group(1)), int(m.group(2)))
+def _dir_version(relpath: Path) -> tuple[BlenderVersion, int] | None:
+    """Search ancestor folders for a 'MAJOR.MINOR' version folder, closest to
+    the file first, e.g. '5.3/Main/chair.blend' -> ((5, 3), 0) -- the version
+    folder is at index 0 of the containing-folder parts.
+
+    Returns (version, part_index) where part_index is the position of the
+    matching folder within relpath.parts, or None if no ancestor matches.
+    This allows the version folder to sit anywhere above the file, not just
+    be its immediate parent -- so '5.2/Main/Preset.blend' works the same as
+    '5.2/Preset.blend'.
+    """
+    parts = relpath.parts[:-1]  # directory components only, excluding the filename
+    for i in range(len(parts) - 1, -1, -1):  # closest ancestor first
+        m = _DIRNAME_RE.fullmatch(parts[i])
+        if m:
+            return (int(m.group(1)), int(m.group(2))), i
+    return None
 
 
 def _cluster_key(relpath: Path, log: LogFn) -> Path:
     """Base identity of a file, ignoring its version folder and @bX_Y marker.
 
-    '5.3/Bradley Preset@b5_3.blend' -> 'Bradley Preset.blend'
+    '5.3/Bradley Preset@b5_3.blend'  -> 'Bradley Preset.blend'
+    '5.3/Main/Preset@b5_3.blend'     -> 'Main/Preset.blend'
     """
     stem = relpath.stem
     m = _MARKER_RE.fullmatch(stem)
@@ -84,13 +96,18 @@ def _cluster_key(relpath: Path, log: LogFn) -> Path:
         stem = m.group(1)
         marker_version = (int(m.group(2)), int(m.group(3)))
 
-    dv = _dir_version(relpath)
-    if dv is not None and marker_version is not None and dv != marker_version:
-        log(f"warning: {relpath}: filename marker {_version_str(marker_version)} "
-            f"disagrees with folder version {_version_str(dv)} (folder wins)")
+    dv_info = _dir_version(relpath)
+    if dv_info is not None:
+        dv, idx = dv_info
+        if marker_version is not None and dv != marker_version:
+            log(f"warning: {relpath}: filename marker {_version_str(marker_version)} "
+                f"disagrees with folder version {_version_str(dv)} (folder wins)")
+        parts = list(relpath.parts)
+        del parts[idx]  # drop only the matched version folder, keep other subfolders
+        parts[-1] = f"{stem}{relpath.suffix}"
+        return Path(*parts)
 
-    parent = relpath.parent.parent if dv is not None else relpath.parent
-    return parent / f"{stem}{relpath.suffix}"
+    return relpath.parent / f"{stem}{relpath.suffix}"
 
 
 def _compute_min_until(
@@ -98,10 +115,11 @@ def _compute_min_until(
 ) -> dict[Path, tuple[BlenderVersion, BlenderVersion | None]]:
     clusters: dict[Path, list[tuple[BlenderVersion, Path]]] = {}
     for rp in all_relpaths:
-        dv = _dir_version(rp)
-        if dv is None:
-            log(f"warning: {rp} has no 'MAJOR.MINOR' parent folder, leaving its bl_versions untouched")
+        dv_info = _dir_version(rp)
+        if dv_info is None:
+            log(f"warning: {rp} has no 'MAJOR.MINOR' ancestor folder, leaving its bl_versions untouched")
             continue
+        dv, _idx = dv_info
         key = _cluster_key(rp, log)
         clusters.setdefault(key, []).append((dv, rp))
 
