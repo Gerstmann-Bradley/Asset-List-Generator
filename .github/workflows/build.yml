@@ -5,11 +5,7 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
@@ -25,12 +21,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pyinstaller
 
-      - name: Build
+      - name: Build EXE
         run: |
           pyinstaller --onefile --windowed "Asset List Generator.py"
 
-      - name: Upload
+      - name: Upload EXE
         uses: actions/upload-artifact@v6
         with:
-          name: Asset-List-Generator-${{ matrix.os }}
-          path: dist/*
+          name: Asset-List-Generator
+          path: dist/*.exe
