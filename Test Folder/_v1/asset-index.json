@@ -1,0 +1,231 @@
+{
+  "schema_version": "1.0.0",
+  "asset_size_bytes": 12586218,
+  "asset_count": 573,
+  "file_count": 2,
+  "pages": [
+    {
+      "url": "_v1/assets-00000.json",
+      "hash": "SHA256:4f2e3b45e211f74db531a88605f181b5ae59f8639b495aea0505d757bb16285d"
+    }
+  ],
+  "catalogs": [
+    {
+      "path": "Bradley GN Presets",
+      "uuids": [
+        "b58ad9e3-8d22-41e5-9069-a38b99d26d50"
+      ],
+      "simple_name": "Bradley GN Presets"
+    },
+    {
+      "path": "Bradley GN Presets/Add Modifier",
+      "uuids": [
+        "1dad0d0f-afd4-408f-91f0-2f1226926d66"
+      ],
+      "simple_name": "Bradley GN Presets-Add Modifier"
+    },
+    {
+      "path": "Bradley GN Presets/Add Modifier/Constraint",
+      "uuids": [
+        "783db847-d3e0-4528-8565-2ac10109f368"
+      ],
+      "simple_name": "Bradley GN Presets-Add Modifier-Constraint"
+    },
+    {
+      "path": "Bradley GN Presets/Attribute",
+      "uuids": [
+        "cc1ae45b-5b0e-425f-95bb-581ba66ec38e"
+      ],
+      "simple_name": "Bradley GN Presets-Attribute"
+    },
+    {
+      "path": "Bradley GN Presets/Curves",
+      "uuids": [
+        "6878a9c6-3254-4da9-a09b-b0fbd66cbfc5"
+      ],
+      "simple_name": "Bradley GN Presets-Curves"
+    },
+    {
+      "path": "Bradley GN Presets/Distribution",
+      "uuids": [
+        "8e88483b-51ee-48a7-94a8-9e235dd2bd1a"
+      ],
+      "simple_name": "Bradley GN Presets-Distribution"
+    },
+    {
+      "path": "Bradley GN Presets/Falloff",
+      "uuids": [
+        "33b99457-a2de-42dd-a6bc-34299ab899b2"
+      ],
+      "simple_name": "Bradley GN Presets-Falloff"
+    },
+    {
+      "path": "Bradley GN Presets/Falloff/Selection",
+      "uuids": [
+        "daf37994-6f23-48fe-aaef-e35927f7704c"
+      ],
+      "simple_name": "Bradley GN Presets-Falloff-Selection"
+    },
+    {
+      "path": "Bradley GN Presets/Geometry Utility",
+      "uuids": [
+        "3db8c9c4-96c1-4aec-a25a-1d046a64d371"
+      ],
+      "simple_name": "Bradley GN Presets-Geometry Utility"
+    },
+    {
+      "path": "Bradley GN Presets/Geometry Utility/Debugging",
+      "uuids": [
+        "487ec1a8-3f55-4fd0-97cc-1e3f5c5c30c6"
+      ],
+      "simple_name": "Bradley GN Presets-Geometry Utility-Debugging"
+    },
+    {
+      "path": "Bradley GN Presets/Index",
+      "uuids": [
+        "a1846d0f-1449-46b8-a734-921983cd30e3"
+      ],
+      "simple_name": "Bradley GN Presets-Index"
+    },
+    {
+      "path": "Bradley GN Presets/Math",
+      "uuids": [
+        "026cea9e-f574-4f7d-859f-88c32025271f"
+      ],
+      "simple_name": "Bradley GN Presets-Math"
+    },
+    {
+      "path": "Bradley GN Presets/Modifier Deformer",
+      "uuids": [
+        "35be3101-27bf-4d1f-97ff-331bc35cbbaf"
+      ],
+      "simple_name": "Bradley GN Presets-Modifier Deformer"
+    },
+    {
+      "path": "Bradley GN Presets/Preset Building",
+      "uuids": [
+        "ba1cadf9-5781-4f17-a97e-2e7d2fc51112"
+      ],
+      "simple_name": "Bradley GN Presets-Preset Building"
+    },
+    {
+      "path": "Bradley GN Presets/Preset Building/Seed",
+      "uuids": [
+        "f00c1c92-7541-49bc-8551-79de1998d86d"
+      ],
+      "simple_name": "Bradley GN Presets-Preset Building-Seed"
+    },
+    {
+      "path": "Bradley GN Presets/Primitive",
+      "uuids": [
+        "0751173a-655d-495d-8438-3426ca633ea4"
+      ],
+      "simple_name": "Bradley GN Presets-Primitive"
+    },
+    {
+      "path": "Bradley GN Presets/Randomize",
+      "uuids": [
+        "6334e6bb-7e69-4c50-b078-1375c1de01e1"
+      ],
+      "simple_name": "Bradley GN Presets-Randomize"
+    },
+    {
+      "path": "Bradley GN Presets/Repeats",
+      "uuids": [
+        "2c290193-2c29-4ea1-9973-8b0f399463a1"
+      ],
+      "simple_name": "Bradley GN Presets-Repeats"
+    },
+    {
+      "path": "Bradley GN Presets/Rotation",
+      "uuids": [
+        "087685d4-87ee-41f8-8e5e-6ba68ce25469"
+      ],
+      "simple_name": "Bradley GN Presets-Rotation"
+    },
+    {
+      "path": "Bradley GN Presets/Simulations",
+      "uuids": [
+        "48915095-f283-4cc6-869c-dbbe9b90db69"
+      ],
+      "simple_name": "Bradley GN Presets-Simulations"
+    },
+    {
+      "path": "Bradley GN Presets/Simulations/Branching",
+      "uuids": [
+        "5ed06f9a-da99-439d-b753-ec5df18027bb"
+      ],
+      "simple_name": "Bradley GN Presets-Simulations-Branching"
+    },
+    {
+      "path": "Bradley GN Presets/Simulations/Info",
+      "uuids": [
+        "eb2052a3-30e8-4930-a5c7-80caeb1c0be8"
+      ],
+      "simple_name": "Bradley GN Presets-Simulations-Info"
+    },
+    {
+      "path": "Bradley GN Presets/Simulations/XPBD",
+      "uuids": [
+        "da2f0190-50c0-464e-8654-5b164c95f323"
+      ],
+      "simple_name": "Bradley GN Presets-Simulations-XPBD"
+    },
+    {
+      "path": "Bradley GN Presets/Volume Grid",
+      "uuids": [
+        "aabbe2f8-a493-4f72-bf3f-d12ca32de466"
+      ],
+      "simple_name": "Bradley GN Presets-Volume Grid"
+    },
+    {
+      "path": "Bradley Shader Presets",
+      "uuids": [
+        "6dec2d9e-1413-4261-96c4-3958158c5c96"
+      ],
+      "simple_name": "Bradley Shader Presets"
+    },
+    {
+      "path": "Bradley Shader Presets/Coordinate Utility",
+      "uuids": [
+        "0b9d651f-8bf5-4327-b3d6-e8d9d52926e1"
+      ],
+      "simple_name": "Bradley Shader Presets-Coordinate Utility"
+    },
+    {
+      "path": "Bradley Shader Presets/Falloff",
+      "uuids": [
+        "f3309f19-40ca-4fc7-8283-31af16ed7064"
+      ],
+      "simple_name": "Bradley Shader Presets-Falloff"
+    },
+    {
+      "path": "Bradley Shader Presets/Math",
+      "uuids": [
+        "9179201c-ea16-48d2-874f-7b7fa0b519b2"
+      ],
+      "simple_name": "Bradley Shader Presets-Math"
+    },
+    {
+      "path": "Bradley Shader Presets/Preset Building",
+      "uuids": [
+        "340aa06a-192f-4890-9020-9e4322065780"
+      ],
+      "simple_name": "Bradley Shader Presets-Preset Building"
+    },
+    {
+      "path": "Bradley Shader Presets/Preset Building/Seed",
+      "uuids": [
+        "c1e39cd4-bb4a-49ae-947e-9b75f81543d9"
+      ],
+      "simple_name": "Bradley Shader Presets-Preset Building-Seed"
+    },
+    {
+      "path": "Bradley Shader Presets/Shader Utility",
+      "uuids": [
+        "2a535be9-c59f-4f82-8629-c394b7637e67"
+      ],
+      "simple_name": "Bradley Shader Presets-Shader Utility"
+    }
+  ]
+}
