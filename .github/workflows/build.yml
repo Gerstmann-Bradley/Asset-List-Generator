@@ -1,11 +1,15 @@
-name: Build EXE
+name: Build
 
 on:
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout
@@ -21,12 +25,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install pyinstaller
 
-      - name: Build EXE
+      - name: Build
         run: |
           pyinstaller --onefile --windowed "Asset List Generator.py"
 
-      - name: Upload EXE
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: Asset-List-Generator
-          path: dist/*.exe
+          name: Asset-List-Generator-${{ matrix.os }}
+          path: dist/*
