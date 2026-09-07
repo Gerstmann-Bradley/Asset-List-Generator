@@ -1,18 +1,32 @@
 import json
 import os
 import subprocess
+import sys
 import threading
 import tkinter as tk
+from pathlib import Path
 from tkinter import filedialog, messagebox, scrolledtext
 
-CONFIG_FILE = "settings.json"
+from asset_version_postprocess import process_library
+
+
+def app_dir() -> Path:
+    """Directory to store settings.json in -- next to the .exe when frozen,
+    next to this .py file otherwise. Avoids writing into a temp extraction
+    folder when bundled with PyInstaller's --onefile mode."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent
+
+
+CONFIG_FILE = app_dir() / "settings.json"
 
 
 class App:
     def __init__(self, root):
         self.root = root
         self.root.title("Remote Asset Listing Generator")
-        self.root.geometry("720x420")
+        self.root.geometry("720x480")
 
         tk.Label(root, text="Blender Executable").grid(row=0, column=0, sticky="w", padx=10, pady=(10, 2))
 
@@ -26,14 +40,26 @@ class App:
         tk.Entry(root, textvariable=self.asset_var, width=70).grid(row=3, column=0, padx=10)
         tk.Button(root, text="Browse...", command=self.pick_asset).grid(row=3, column=1, padx=5)
 
+        self.fix_versions_var = tk.BooleanVar(value=True)
+        tk.Checkbutton(
+            root, text="Auto-fix bl_versions (min/until) from version folders after generating",
+            variable=self.fix_versions_var,
+        ).grid(row=4, column=0, sticky="w", padx=10, pady=(8, 0))
+
+        self.dry_run_var = tk.BooleanVar(value=False)
+        tk.Checkbutton(
+            root, text="Preview only (dry run) -- don't write changes",
+            variable=self.dry_run_var,
+        ).grid(row=5, column=0, sticky="w", padx=10)
+
         self.run_btn = tk.Button(root, text="Generate Asset Listing", command=self.run)
-        self.run_btn.grid(row=4, column=0, pady=12)
+        self.run_btn.grid(row=6, column=0, pady=12)
 
         self.output = scrolledtext.ScrolledText(root, height=14)
-        self.output.grid(row=5, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
+        self.output.grid(row=7, column=0, columnspan=2, padx=10, pady=5, sticky="nsew")
 
         root.grid_columnconfigure(0, weight=1)
-        root.grid_rowconfigure(5, weight=1)
+        root.grid_rowconfigure(7, weight=1)
 
         self.load_settings()
 
@@ -51,23 +77,24 @@ class App:
             self.asset_var.set(path)
 
     def load_settings(self):
-        if not os.path.exists(CONFIG_FILE):
+        if not CONFIG_FILE.exists():
             return
-
         try:
-            with open(CONFIG_FILE, "r") as f:
-                data = json.load(f)
+            data = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
             self.blender_var.set(data.get("blender", ""))
             self.asset_var.set(data.get("asset", ""))
+            self.fix_versions_var.set(data.get("fix_versions", True))
+            self.dry_run_var.set(data.get("dry_run", False))
         except Exception:
             pass
 
     def save_settings(self):
-        with open(CONFIG_FILE, "w") as f:
-            json.dump({
-                "blender": self.blender_var.get(),
-                "asset": self.asset_var.get()
-            }, f, indent=4)
+        CONFIG_FILE.write_text(json.dumps({
+            "blender": self.blender_var.get(),
+            "asset": self.asset_var.get(),
+            "fix_versions": self.fix_versions_var.get(),
+            "dry_run": self.dry_run_var.get(),
+        }, indent=4), encoding="utf-8")
 
     def log(self, text):
         self.output.insert(tk.END, text)
@@ -93,21 +120,14 @@ class App:
         threading.Thread(target=self.worker, args=(blender, asset), daemon=True).start()
 
     def worker(self, blender, asset):
-        cmd = [
-            blender,
-            "-b",
-            "-c",
-            "asset_listing",
-            "generate",
-            "."
-        ]
+        cmd = [blender, "-b", "-c", "asset_listing", "generate", "."]
 
         process = subprocess.Popen(
             cmd,
             cwd=asset,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            text=True
+            text=True,
         )
 
         for line in process.stdout:
@@ -115,14 +135,31 @@ class App:
 
         process.wait()
 
-        if process.returncode == 0:
-            self.root.after(0, lambda: self.log("\nFinished successfully.\n"))
-        else:
+        if process.returncode != 0:
             self.root.after(0, lambda: self.log(f"\nFailed (Exit Code {process.returncode}).\n"))
+            self.root.after(0, lambda: self.run_btn.config(state="normal"))
+            return
 
+        self.root.after(0, lambda: self.log("\nGenerator finished successfully.\n"))
+
+        if self.fix_versions_var.get():
+            self.root.after(0, lambda: self.log("\n--- Post-processing bl_versions from folder structure ---\n"))
+
+            def pp_log(msg: str) -> None:
+                self.root.after(0, self.log, msg + "\n")
+
+            try:
+                process_library(Path(asset), dry_run=self.dry_run_var.get(), log=pp_log)
+            except FileNotFoundError as ex:
+                pp_log(f"error: {ex}")
+            except Exception as ex:  # noqa: BLE001 -- surface any unexpected failure to the log, don't crash the GUI
+                pp_log(f"error: version post-processing failed: {ex}")
+
+        self.root.after(0, lambda: self.log("\nAll done.\n"))
         self.root.after(0, lambda: self.run_btn.config(state="normal"))
 
 
-root = tk.Tk()
-App(root)
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    App(root)
+    root.mainloop()
