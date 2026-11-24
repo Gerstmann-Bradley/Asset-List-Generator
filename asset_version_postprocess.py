@@ -140,15 +140,27 @@ def _load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def _save_json(path: Path, data: dict) -> None:
-    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+def _json_bytes(data: dict) -> bytes:
+    """Serialize to the exact bytes we write and hash.
+
+    json.dumps only ever emits '\\n', and we encode to bytes ourselves and
+    write them with write_bytes(), so Windows' text-mode newline translation
+    ('\\n' -> '\\r\\n') can never sneak in. LF-only keeps the hashes valid
+    after git, which normalizes line endings, or any other tool touches them.
+    """
+    return json.dumps(data, indent=2).encode("utf-8")
+
+
+def _hash_bytes(data: bytes) -> str:
+    return f"SHA256:{hashlib.sha256(data).hexdigest()}"
 
 
 def process_library(root: Path, dry_run: bool = False, log: LogFn = print) -> int:
-    """Rewrite bl_versions in-place based on folder structure.
+    """Rewrite bl_versions based on folder structure, and normalize the
+    listing JSON files to LF line endings with a consistent hash chain.
 
-    Returns the number of pages that were (or, in dry-run mode, would be)
-    changed. Raises FileNotFoundError if the library hasn't been generated
+    Returns the number of files that were (or, in dry-run mode, would be)
+    rewritten. Raises FileNotFoundError if the library hasn't been generated
     by Blender yet.
     """
     root = root.resolve()
@@ -220,43 +232,60 @@ def process_library(root: Path, dry_run: bool = False, log: LogFn = print) -> in
         if page_changed:
             changed_pages.append(pp)
 
-    if not changed_pages:
+    if changed_pages:
+        log(f"bl_versions changed on {len(changed_pages)} page(s).")
+
+    # Pass 3: build the final bytes of every file in memory, recomputing the
+    # hash chain (page -> index -> meta) from those exact bytes. Everything is
+    # LF-only. This runs even when no bl_versions changed, because Blender's
+    # own generator writes CRLF on Windows, which breaks the hashes once git
+    # normalizes the line endings. Files are only written if their bytes differ,
+    # so running this twice in a row is a no-op.
+    writes: dict[Path, bytes] = {}
+
+    for entry, pp in zip(page_entries, page_paths):
+        page_bytes = _json_bytes(page_cache[pp])
+        entry["hash"] = _hash_bytes(page_bytes)
+        writes[pp] = page_bytes
+
+    index_bytes = _json_bytes(index)
+    writes[index_path] = index_bytes
+
+    if meta_path.exists():
+        meta = _load_json(meta_path)
+        api_versions = meta.get("api_versions", {})
+        if API_VERSION_KEY in api_versions:
+            old_hash = api_versions[API_VERSION_KEY].get("hash")
+            new_hash = _hash_bytes(index_bytes)
+            api_versions[API_VERSION_KEY]["hash"] = new_hash
+            writes[meta_path] = _json_bytes(meta)
+            if old_hash != new_hash:
+                log(f"{meta_path.name}: '{API_VERSION_KEY}' hash {old_hash} -> {new_hash}")
+        else:
+            log(f"warning: {meta_path} has no '{API_VERSION_KEY}' entry under "
+                f"'api_versions' (found keys: {list(api_versions.keys())}) "
+                f"-- its hash was not updated")
+    else:
+        log(f"warning: {meta_path} not found -- its hash was not updated")
+
+    to_write = [p for p, b in writes.items() if not p.exists() or p.read_bytes() != b]
+
+    if not to_write:
         log("Version post-processing: nothing to change.")
         return 0
 
     if dry_run:
-        log(f"Version post-processing (dry run): {len(changed_pages)} page(s) would change:")
-        for pp in changed_pages:
-            log(f"  {pp.relative_to(root)}")
-        return len(changed_pages)
+        log(f"Version post-processing (dry run): {len(to_write)} file(s) would be rewritten:")
+        for p in to_write:
+            log(f"  {p.relative_to(root)}")
+        return len(to_write)
 
-    # Pass 3: write changed pages, then cascade hash updates: page -> index -> meta.
-    for pp in changed_pages:
-        _save_json(pp, page_cache[pp])
+    for p in to_write:
+        p.write_bytes(writes[p])
 
-    index_changed = False
-    for entry, pp in zip(page_entries, page_paths):
-        if pp in changed_pages:
-            entry["hash"] = _hash_file(pp)
-            index_changed = True
-
-    if index_changed:
-        _save_json(index_path, index)
-
-        if meta_path.exists():
-            meta = _load_json(meta_path)
-            api_versions = meta.get("api_versions", {})
-            if API_VERSION_KEY in api_versions:
-                api_versions[API_VERSION_KEY]["hash"] = _hash_file(index_path)
-                _save_json(meta_path, meta)
-            else:
-                log(f"warning: {meta_path} has no '{API_VERSION_KEY}' entry under "
-                    f"'api_versions' -- its hash was not updated")
-        else:
-            log(f"warning: {meta_path} not found -- its hash was not updated")
-
-    log(f"Version post-processing: updated {len(changed_pages)} page(s), re-hashed index and meta.")
-    return len(changed_pages)
+    log(f"Version post-processing: rewrote {len(to_write)} file(s) "
+        f"(LF line endings, hashes re-linked).")
+    return len(to_write)
 
 
 def _main() -> None:
